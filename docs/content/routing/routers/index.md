@@ -650,13 +650,19 @@ If no matching route is found for the TCP routers, then the HTTP routers will ta
 If not specified, TCP routers will accept requests from all defined entry points.
 If you want to limit the router scope to a set of entry points, set the entry points option.
 
+### StartTLS
+
+Some applications perform as StartTLS handshake before a TLS connections is established. For that reason SNI based routing will
+only work if traefik perform this handshake on behalf of the target service. There are multiple protocols that use StartTLS, currently
+only Postgres StartTLS handshake is supported.
+
 ??? example "Listens to Every Entry Point"
-    
+
     **Dynamic Configuration**
 
     ```toml tab="File (TOML)"
     ## Dynamic configuration
-    
+
     [tcp.routers]
       [tcp.routers.Router-1]
         # By default, routers listen to every entrypoints
@@ -665,10 +671,10 @@ If you want to limit the router scope to a set of entry points, set the entry po
         # will route TLS requests (and ignore non tls requests)
         [tcp.routers.Router-1.tls]
     ```
-    
+
     ```yaml tab="File (YAML)"
     ## Dynamic configuration
-    
+
     tcp:
       routers:
         Router-1:
@@ -680,10 +686,10 @@ If you want to limit the router scope to a set of entry points, set the entry po
     ```
 
     **Static Configuration**
-    
+
     ```toml tab="File (TOML)"
     ## Static configuration
-    
+
     [entryPoints]
       [entryPoints.web]
         address = ":80"
@@ -692,10 +698,10 @@ If you want to limit the router scope to a set of entry points, set the entry po
       [entryPoints.other]
         address = ":9090"
     ```
-    
+
     ```yaml tab="File (YAML)"
     ## Static configuration
-    
+
     entryPoints:
       web:
         address: ":80"
@@ -704,7 +710,7 @@ If you want to limit the router scope to a set of entry points, set the entry po
       other:
         address: ":9090"
     ```
-    
+
     ```bash tab="CLI"
     ## Static configuration
     --entrypoints.web.address=:80
@@ -713,9 +719,9 @@ If you want to limit the router scope to a set of entry points, set the entry po
     ```
 
 ??? example "Listens to Specific Entry Points"
-    
+
     **Dynamic Configuration**
-    
+
     ```toml tab="File (TOML)"
     ## Dynamic configuration
     [tcp.routers]
@@ -727,7 +733,7 @@ If you want to limit the router scope to a set of entry points, set the entry po
         # will route TLS requests (and ignore non tls requests)
         [tcp.routers.Router-1.tls]
     ```
-    
+
     ```yaml tab="File (YAML)"
     ## Dynamic configuration
     tcp:
@@ -744,10 +750,10 @@ If you want to limit the router scope to a set of entry points, set the entry po
     ```
 
     **Static Configuration**
-    
+
     ```toml tab="File (TOML)"
     ## Static configuration
-    
+
     [entryPoints]
       [entryPoints.web]
         address = ":80"
@@ -756,10 +762,10 @@ If you want to limit the router scope to a set of entry points, set the entry po
       [entryPoints.other]
         address = ":9090"
     ```
-    
+
     ```yaml tab="File (YAML)"
     ## Static configuration
-    
+
     entryPoints:
       web:
         address: ":80"
@@ -768,12 +774,49 @@ If you want to limit the router scope to a set of entry points, set the entry po
       other:
         address: ":9090"
     ```
-    
+
     ```bash tab="CLI"
     ## Static configuration
     --entrypoints.web.address=:80
     --entrypoints.websecure.address=:443
     --entrypoints.other.address=:9090
+    ```
+
+??? example "With Postgres StartTLS handshake"
+
+    **Dynamic Configuration**
+
+    ```toml tab="File (TOML)"
+    ## Dynamic configuration
+
+    [tcp.routers]
+      [tcp.routers.Router-1]
+        # By default, routers listen to every entrypoints
+        rule = "HostSNI(`example.com`)"
+        service = "service-1"
+        # will route TLS requests (and ignore non tls requests)
+        [tcp.routers.Router-1.tls]
+
+    [tcp.services]
+      [tcp.services.service-1]
+         startTLS = "postgres"
+    ```
+
+    ```yaml tab="File (YAML)"
+    ## Dynamic configuration
+
+    tcp:
+      routers:
+        Router-1:
+          # By default, routers listen to every entrypoints
+          rule: "HostSNI(`example.com`)"
+          service: "service-1"
+          # will route TLS requests (and ignore non tls requests)
+          tls: {}
+
+      services:
+        service-1:
+          startTLS: "postgres"
     ```
 
 ### Rule
